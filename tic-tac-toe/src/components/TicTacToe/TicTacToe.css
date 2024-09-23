@@ -1,0 +1,13 @@
+.button{
+    border: 1px solid black;
+    width: 80px;
+    height: 80px;
+}
+
+.blocks-grid{
+    width: min-content;
+    display: grid;
+    grid-template-columns:repeat(var(--block-size), 1fr);
+    gap: 0;
+
+}
