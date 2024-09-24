@@ -9,5 +9,31 @@
     display: grid;
     grid-template-columns:repeat(var(--block-size), 1fr);
     gap: 0;
-
 }
+.block-size{
+    width: 50px;
+    height: 20px;
+}
+
+.reset-container{
+    display: flex;
+    justify-content: flex-end;
+    margin: 1rem 0;
+}
+.reset-btn{
+    border: 1px solid black;
+}
+
+.zoom {
+    font-size: 30px; 
+    animation: zoom-out 0.5s forwards;
+  }
+  
+  @keyframes zoom-out {
+    0% {
+      font-size: 80px;
+    }
+    100% {
+      font-size: 30px;
+    }
+  }

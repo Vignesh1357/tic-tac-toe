@@ -12,108 +12,136 @@ const TicTacToe = () => {
   const [winner, setWinner] = useState(null);
   const [isDraw, setIsDraw] = useState(false);
   const [winningPatterns, setWinningPatterns] = useState([]);
+  const [disabled, setDisabled] = useState(false);
+  const [zoom, setZoom] = useState(false);
 
   useEffect(() => {
-    setBlocks(
-      Array(blockSize * blockSize)
-        .fill()
-        .map(() => ({ ...initialValue }))
-    );
-    document.documentElement.style.setProperty("--block-size", `${blockSize}`);
-    createWinnigPatterns(3);
-  }, []);
+    if (blockSize) {
+      (async () => {
+        setBlocks(
+          Array(blockSize * blockSize)
+            .fill()
+            .map(() => ({ ...initialValue }))
+        );
+        document.documentElement.style.setProperty(
+          "--block-size",
+          `${blockSize}`
+        );
+        await createWinnigPatterns(blockSize);
+      })();
+      setUser(false);
+    }
+  }, [blockSize]);
 
-  const handleClick = async (index) => {
-    let updatedBlocks = blocks.map((block, ind) => {
-      if (ind === index && !block.text) {
-        if (user) {
-          block.text = "X";
-        } else {
-          block.text = "O";
-        }
-      }
-      return block;
-    });
-    setBlocks(updatedBlocks);
-    setUser(!user);
-    await checkMatchStatus();
+  const handleZoom = () => {
+    setZoom(true);
+    setTimeout(() => {
+      setZoom(false);
+    }, 500);
   };
 
-  const checkMatchStatus = async () => {
+  const handleClick = async (index) => {
+    setDisabled(true);
+    await new Promise((resolve) => {
+      setBlocks((prevBlocks) => {
+        let updatedBlocks = prevBlocks.map((block, ind) => {
+          if (ind === index && !block.text) {
+            if (user) {
+              block.text = "X";
+            } else {
+              block.text = "O";
+            }
+          }
+          return block;
+        });
+        checkMatchStatus(updatedBlocks);
+        return updatedBlocks;
+      });
+      resolve();
+      setDisabled(false);
+    });
+    setUser(!user);
+  };
+
+  const checkMatchStatus = (updatedBlocks) => {
     let emptyCheck = [];
-    blocks.map((block) => {
+    updatedBlocks.map((block) => {
       if (!block.text) {
         emptyCheck.push(block);
       }
     });
     winningPatterns.map((pattern) => {
       let same = true;
-      let val = blocks[pattern[0] - 1].text;
+      let val = updatedBlocks[pattern[0] - 1].text;
 
       if (val) {
-        console.log(pattern, val);
         pattern.map((item) => {
-          console.log(blocks[item - 1].text, item - 1, val);
-
-          if (blocks[item - 1].text !== val) {
+          if (updatedBlocks[item - 1].text !== val) {
             same = false;
           }
         });
         if (same) {
+          setZoom(true);
           setWinner(val);
         }
       }
     });
 
     if (emptyCheck.length === 0 && !winner) {
+      setZoom(true);
       setIsDraw(true);
     }
   };
 
-  const createWinnigPatterns = (size) => {
-    let patterns = [];
-    let pattern = [];
+  const createWinnigPatterns = async (size) => {
+    await new Promise((resolve) => {
+      let patterns = [];
+      let pattern = [];
 
-    for (let i = 1; i <= size * size; i++) {
-      if (i % size === 0) {
-        pattern.push(i);
+      for (let i = 1; i <= size * size; i++) {
+        if (i % size === 0) {
+          pattern.push(i);
+          patterns.push(pattern);
+          pattern = [];
+        } else {
+          pattern.push(i);
+        }
+      }
+
+      for (let i = 1; i <= size; i++) {
+        let j = i;
+        while (j <= size * size) {
+          pattern.push(j);
+          console.log(j, size, j + size, size * size);
+
+          j += size;
+        }
         patterns.push(pattern);
         pattern = [];
-      } else {
-        pattern.push(i);
       }
-    }
 
-    for (let i = 1; i <= size; i++) {
-      let j = i;
-      while (j <= size * size) {
-        pattern.push(j);
-        j += size;
+      let i = 1;
+      while (i <= size * size) {
+        pattern.push(i);
+        i += size + 1;
       }
       patterns.push(pattern);
       pattern = [];
-    }
 
-    let i = 1;
-    while (i <= size * size) {
-      pattern.push(i);
-      i += size + 1;
-    }
-    patterns.push(pattern);
-    pattern = [];
+      i = size;
+      while (i < size * size) {
+        pattern.push(i);
+        i += size - 1;
+      }
+      patterns.push(pattern);
+      pattern = [];
 
-    i = size;
-    while (i < size * size) {
-      pattern.push(i);
-      i += size - 1;
-    }
-    patterns.push(pattern);
-    pattern = [];
-
-    console.log("====================================");
-    console.log(patterns);
-    console.log("====================================");
-    setWinningPatterns(patterns);
+      console.log("====================================");
+      console.log(patterns);
+      console.log("====================================");
+      setWinningPatterns(patterns);
+      resolve();
+    });
   };
 
   const handleReset = () => {
@@ -126,18 +154,48 @@ const TicTacToe = () => {
     setIsDraw(false);
   };
 
+  const handleChange = (e) => {
+    let val = e.target.value;
+    if (val ? val < 11 && val > 2 : true) setblockSize(parseInt(val));
+  };
+
   return (
     <div>
-      {winner && `The winner is ${winner}`}
-      {isDraw && "Match is a Tie!"}
-      {(winner || isDraw) && <button onClick={handleReset}>Reset</button>}
+      {winner && (
+        <h3 className={zoom ? "zoom" : ""}>{`The winner is ${winner}`}</h3>
+      )}
+      {isDraw && <h3 className={zoom ? "zoom" : ""}>Match is a Tie!</h3>}
+      <div>
+        <label>
+          <h4>
+            Enter the size of the block :
+            <input
+              value={blockSize}
+              type="number"
+              className="block-size"
+              onChange={handleChange}
+              max={10}
+              min={3}
+            />{" "}
+            X {blockSize}
+          </h4>
+        </label>
+      </div>
+      {(winner || isDraw) && (
+        <div className="reset-container">
+          {" "}
+          <button className="reset-btn" onClick={handleReset}>
+            Reset
+          </button>
+        </div>
+      )}
       <div className="blocks-grid">
-        {blocks.map((block, index) => (
+        {blocks?.map((block, index) => (
           <button
             className="button"
             key={index}
-            disabled={winner}
-            onClick={() => handleClick(index)}
+            disabled={winner || disabled}
+            onClick={async () => await handleClick(index)}
           >
             {block.text}
           </button>
