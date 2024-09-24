@@ -18,6 +18,7 @@ const TicTacToe = () => {
   useEffect(() => {
     if (blockSize) {
       (async () => {
+        setUser(false);
         setBlocks(
           Array(blockSize * blockSize)
             .fill()
@@ -29,7 +30,6 @@ const TicTacToe = () => {
         );
         await createWinnigPatterns(blockSize);
       })();
-      setUser(false);
     }
   }, [blockSize]);
 
@@ -44,6 +44,7 @@ const TicTacToe = () => {
     setDisabled(true);
     await new Promise((resolve) => {
       setBlocks((prevBlocks) => {
+        setUser(!user);
         let updatedBlocks = prevBlocks.map((block, ind) => {
           if (ind === index && !block.text) {
             if (user) {
@@ -60,7 +61,6 @@ const TicTacToe = () => {
       resolve();
       setDisabled(false);
     });
-    setUser(!user);
   };
 
   const checkMatchStatus = (updatedBlocks) => {
