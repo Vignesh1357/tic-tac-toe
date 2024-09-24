@@ -82,6 +82,7 @@ const TicTacToe = () => {
         });
         if (same) {
           setZoom(true);
+          handleZoom();
           setWinner(val);
         }
       }
@@ -89,6 +90,7 @@ const TicTacToe = () => {
 
     if (emptyCheck.length === 0 && !winner) {
       setZoom(true);
+      handleZoom();
       setIsDraw(true);
     }
   };
@@ -165,7 +167,7 @@ const TicTacToe = () => {
         <h3 className={zoom ? "zoom" : ""}>{`The winner is ${winner}`}</h3>
       )}
       {isDraw && <h3 className={zoom ? "zoom" : ""}>Match is a Tie!</h3>}
-      <div>
+      <div className={`background ${zoom ? "fade" : ""}`}>
         <label>
           <h4>
             Enter the size of the block :
@@ -182,24 +184,26 @@ const TicTacToe = () => {
         </label>
       </div>
       {(winner || isDraw) && (
-        <div className="reset-container">
+        <div className={`reset-container background ${zoom ? "fade" : ""}`}>
           {" "}
           <button className="reset-btn" onClick={handleReset}>
             Reset
           </button>
         </div>
       )}
-      <div className="blocks-grid">
-        {blocks?.map((block, index) => (
-          <button
-            className="button"
-            key={index}
-            disabled={winner || disabled}
-            onClick={async () => await handleClick(index)}
-          >
-            {block.text}
-          </button>
-        ))}
+      <div className={`blocks background ${zoom ? "fade" : ""}`}>
+        <div className="blocks-grid">
+          {blocks?.map((block, index) => (
+            <button
+              className="button"
+              key={index}
+              disabled={winner || disabled}
+              onClick={async () => await handleClick(index)}
+            >
+              {block.text}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
